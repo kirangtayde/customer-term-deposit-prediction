@@ -7,7 +7,7 @@ import argparse
 import joblib
 import pandas as pd
 
-from data_preprocessing import prepare_features
+from src.data_preprocessing import prepare_features
 
 
 def score(input_path: str, model_path: str, output_path: str) -> pd.DataFrame:
