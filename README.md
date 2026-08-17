@@ -1,64 +1,85 @@
 # Customer Term Deposit Prediction
 
-An end-to-end machine learning project that predicts whether a bank customer is likely to subscribe to a term deposit and converts model probabilities into actionable marketing lead segments.
+![Python](https://img.shields.io/badge/Python-3.11%2B-blue)
+![ML](https://img.shields.io/badge/ML-Classification-orange)
+![Explainability](https://img.shields.io/badge/Explainability-SHAP-purple)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-green)
 
-## Business Problem
+An end-to-end **customer propensity modeling** project that predicts the likelihood of a bank customer subscribing to a term deposit and converts model probabilities into actionable marketing lead segments.
 
-Banks may contact thousands of customers during deposit campaigns while only a fraction convert. The goal is to identify high-potential customers before outreach so limited sales capacity can be prioritized.
+## Business problem
 
-### Objective
+Banking campaigns can contact thousands of customers while only a small proportion convert. The objective is to estimate **who is most likely to subscribe**, rank customers by propensity and help sales teams prioritize limited outreach capacity.
 
-Build a supervised binary classification pipeline that estimates:
+The model output is a probability:
 
-`P(customer subscribes | customer and campaign characteristics)`
+`P(term_deposit_subscription | customer + campaign features)`
 
-The output is a probability score rather than only a yes/no prediction.
+rather than a simple yes/no label.
 
-## Business Value
+## Business value
 
-- Prioritize high-propensity leads
+- Prioritize high-potential leads
 - Improve campaign conversion efficiency
-- Reduce unnecessary outreach
+- Reduce low-value outreach
 - Support data-driven marketing allocation
-- Enable threshold selection based on campaign economics
+- Enable threshold selection based on business economics
+- Provide interpretable drivers for model decisions
 
-## ML Workflow
+## ML workflow
 
 ```text
-Raw Data -> Validation -> EDA -> Cleaning -> Feature Engineering
-        -> Encoding -> Stratified Split -> Imbalance Handling
-        -> Baseline -> Tree/Boosting Models -> Tuning
-        -> Evaluation -> Explainability -> Threshold Optimization
-        -> Lead Segmentation -> Deployment
+Raw Data
+   ↓
+Validation & Data Quality
+   ↓
+EDA + Feature Engineering
+   ↓
+Preprocessing / Encoding
+   ↓
+Stratified Train-Test Split
+   ↓
+Baseline + Tree / Boosting Models
+   ↓
+Probability Evaluation
+   ↓
+Threshold Optimization
+   ↓
+Lead Segmentation
+   ↓
+Explainability
+   ↓
+Deployment / Monitoring
 ```
 
 ## Target
 
-`term_deposit_subscription`
+The default target is `y` and can represent term-deposit subscription using either binary values or common `yes`/`no` labels.
 
-| Value | Meaning |
-|---|---|
-| 0 | Customer does not subscribe |
-| 1 | Customer subscribes |
-
-The repository intentionally does not include customer PII or a dataset by default. Place an approved dataset in `data/raw/` locally and document its source/license before sharing it.
+The repository does **not** include customer PII or production banking data. Put an approved dataset in `data/raw/` locally and document its source and license before publication.
 
 ## Features
 
-Typical banking-marketing features can include age, job, marital status, education, balance, credit/default status, housing and personal loans, contact channel, campaign timing, number of contacts, previous campaign history and previous outcome.
+Typical bank-marketing variables can include:
 
-Feature engineering can create signals such as age group, balance group, previous-contact flag, campaign intensity and previous-success flag. All transformations should be fit on training data only to prevent leakage.
+- Demographics: age, job, marital status, education
+- Financial profile: account balance, default, housing loan, personal loan
+- Campaign information: contact channel, campaign count, previous contacts
+- Historical outcome: previous campaign result
+- Engineered signals: balance groups, age groups, previous-contact flags and campaign intensity
+
+All transformations should be fitted only on training data to avoid data leakage.
 
 ## Models
 
-The project is designed to compare:
+The project is structured for model comparison:
 
-1. Logistic Regression — interpretable baseline
-2. Random Forest — nonlinear interactions
-3. Gradient Boosting — strong tabular baseline
-4. XGBoost — optional advanced boosting model
+1. **Logistic Regression** — interpretable baseline
+2. **Random Forest** — nonlinear interactions
+3. **Gradient Boosting** — strong tabular baseline
+4. **XGBoost** — advanced gradient boosting option
 
-Model selection should consider business objectives rather than accuracy alone.
+Model selection should prioritize the business objective, not accuracy alone.
 
 ## Evaluation
 
@@ -70,30 +91,31 @@ Recommended metrics:
 - ROC-AUC
 - PR-AUC
 - Confusion matrix
-- Calibration / probability quality
-- Lift and conversion by propensity decile
+- Probability calibration
+- Lift / gain by propensity decile
+- Conversion rate by lead segment
 
-For marketing use cases, precision and recall must be interpreted together with the cost of contacting a customer and the value of a successful subscription.
+For imbalanced marketing data, PR-AUC, recall at a practical contact budget and expected campaign value can be more informative than raw accuracy.
 
-## Lead Segmentation
+## Lead segmentation
 
-Example probability policy:
+Illustrative policy:
 
-| Probability | Segment | Action |
+| Probability | Segment | Suggested action |
 |---:|---|---|
 | >= 0.80 | High Potential | Immediate sales priority |
-| 0.60-0.79 | Strong Potential | Priority follow-up |
-| 0.40-0.59 | Medium | Secondary campaign |
-| 0.20-0.39 | Low | Low-cost digital campaign |
+| 0.60–0.79 | Strong Potential | Priority follow-up |
+| 0.40–0.59 | Medium | Secondary campaign |
+| 0.20–0.39 | Low | Low-cost digital campaign |
 | < 0.20 | Very Low | Do not prioritize |
 
-These thresholds are illustrative. They should be optimized against validation data and campaign economics.
+These values are examples only. Production thresholds should be optimized on validation data against contact cost, conversion value and available sales capacity.
 
 ## Explainability
 
-The project supports feature importance and can be extended with SHAP. Explainability should answer questions such as which customer attributes drive propensity and whether the model behaves consistently across customer segments.
+The project supports feature-importance analysis and can be extended with SHAP to explain individual predictions and global model behavior. Explainability should be used to identify stable business signals and detect unexpected model behavior across customer groups.
 
-## Project Structure
+## Project structure
 
 ```text
 customer-term-deposit-prediction/
@@ -113,8 +135,6 @@ customer-term-deposit-prediction/
 ├── app/
 │   └── app.py
 ├── tests/
-│   ├── test_preprocessing.py
-│   └── test_prediction.py
 ├── .github/workflows/ci.yml
 ├── requirements.txt
 ├── Dockerfile
@@ -122,71 +142,52 @@ customer-term-deposit-prediction/
 └── README.md
 ```
 
-## Quick Start
+## Quick start
 
 ```bash
 git clone https://github.com/kirangtayde/customer-term-deposit-prediction.git
 cd customer-term-deposit-prediction
 python -m venv .venv
-```
-
-Windows:
-
-```bash
-.venv\Scripts\activate
-```
-
-Linux/macOS:
-
-```bash
-source .venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
 pip install -r requirements.txt
-```
-
-Run tests:
-
-```bash
 pytest -q
 ```
 
-Train after placing a compatible dataset in `data/raw/`:
+Train on an approved CSV:
 
 ```bash
-python src/train.py --input data/raw/bank_marketing.csv --target y
+python src/train.py --input data/raw/bank_marketing.csv --target y --model models/model.joblib
 ```
 
-Generate a prediction for a CSV containing feature columns:
+Generate scores:
 
 ```bash
 python src/predict.py --input data/raw/scoring.csv --model models/model.joblib --output predictions.csv
 ```
 
-## API Demo
-
-The Streamlit app provides an interactive scoring interface when a trained model exists:
+Run the interactive application when a compatible trained model is available:
 
 ```bash
 streamlit run app/app.py
 ```
 
-## Testing and CI
+## Engineering practices
 
-GitHub Actions runs dependency installation and the unit test suite on pushes and pull requests. The project uses small deterministic tests so the CI pipeline remains useful even when no private/customer dataset is committed.
+- Reusable Python modules instead of notebook-only code
+- Unit tests for preprocessing and prediction behavior
+- GitHub Actions CI on pushes and pull requests
+- Docker support for reproducible execution
+- No credentials, PII or production records committed to Git
+- Explicit separation of training, scoring and evaluation
 
-## Data Privacy
+## Responsible AI and data privacy
 
-Do not commit personally identifiable information, confidential bank records, credentials, `.env` files, raw production data or customer-level sensitive data. Use `.gitignore` and approved data-governance procedures.
+Banking propensity models can affect how customers are targeted. The project should be evaluated for leakage, sampling bias, calibration, subgroup performance, privacy and changing campaign behavior before production use. Do not commit customer-level sensitive information or confidential banking records.
 
 ## Limitations
 
-Historical campaign data can contain sampling bias, changing customer behavior and campaign-specific effects. A model should be monitored for data drift, calibration, subgroup performance and changing business economics before production use.
+Historical campaign data can contain selection bias, campaign-specific effects and changing customer behavior. A strong offline metric does not guarantee business impact. Production deployment should include drift monitoring, recalibration, threshold review and controlled campaign experiments.
 
-## Future Improvements
+## Future improvements
 
 - Hyperparameter optimization with Optuna
 - SHAP explainability dashboard
@@ -195,21 +196,19 @@ Historical campaign data can contain sampling bias, changing customer behavior a
 - Uplift modeling
 - MLflow experiment tracking
 - Data/model drift monitoring
-- FastAPI production service
+- FastAPI inference service
 - Dockerized deployment
-- Model registry and automated retraining
+- Automated retraining and model registry
 - Campaign A/B testing
 
-## Resume Value
+## Resume-ready summary
 
-**Customer Term Deposit Prediction | Python, Pandas, Scikit-learn, XGBoost, SHAP**
-
-Built an end-to-end propensity modeling workflow for banking campaign targeting, including EDA, feature engineering, class-imbalance strategy, model comparison, probability scoring, threshold-based lead segmentation and reproducible testing/CI.
+**Customer Term Deposit Prediction | Python, Pandas, Scikit-learn, XGBoost, SHAP** — Built an end-to-end propensity modeling workflow for banking campaign targeting, including preprocessing, feature engineering, class-imbalance strategy, model comparison, probability scoring, threshold-based lead segmentation, explainability, testing and CI.
 
 ## Author
 
 **Kiran Tayde**  
-Data Science | Machine Learning | Python | Analytics
+Senior Data Scientist | Machine Learning | Data Science | NLP
 
 GitHub: https://github.com/kirangtayde
 
